@@ -165,11 +165,6 @@ class AgentOrchestrator:
         self._save_git_diff_and_restore()
         print(f"Fixer result: {result}")
 
-        # Log the current patches in context
-        log_event_stream(
-            "CONTEXT_PATCHES",
-            {"patches": [str(patch) for patch in self.context.states.patches]},
-        )
 
 
 async def main():

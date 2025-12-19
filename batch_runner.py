@@ -9,13 +9,16 @@ from pathlib import Path
 
 
 def load_unresolved_ids() -> list:
-    """Load unresolved IDs from the missing_ids_from_patches.txt file."""
+    import os
+    # Check for INPUT_FILE environment variable, default to original file
+    input_file = os.environ.get('INPUT_FILE', 'missing_ids_from_patches.txt')
     try:
-        with open('missing_ids_from_patches.txt', 'r', encoding='utf-8') as f:
+        with open(input_file, 'r', encoding='utf-8') as f:
             ids = [line.strip() for line in f if line.strip()]
         return ids
     except FileNotFoundError:
         # If the file doesn't exist, return empty list
+        print(f"Input file {input_file} not found, returning empty list")
         return []
 
 
@@ -133,15 +136,7 @@ def main():
 
     print(f"Found {len(unresolved_ids)} unresolved instances to process")
 
-    # Ask user for confirmation
-    print("\nThis will run 'uv run main.py' for each unresolved instance using INSTANCE_ID and PROJECT_NAME environment variables.")
-    print("Do you want to continue? (y/n): ", end="", flush=True)
-    response = input().lower().strip()
-
-    if response not in ['y', 'yes']:
-        print("Batch run cancelled.")
-        return
-
+    
     # Run batch processing
     results = run_batch_instances(unresolved_ids)
 

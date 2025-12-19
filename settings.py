@@ -10,21 +10,21 @@ from pathlib import Path
 class Settings(BaseSettings):
     """Configuration settings with support for environment variables."""
 
-    # api_key: str = Field(default="sk-67f25953525e848c7da998a9a7d57b4c", env="API_KEY")
-    # base_url: str = Field(
-    #     default="https://apis.iflow.cn/v1",
-    #     env="BASE_URL",
-    # )
-    # model: str = Field(default="qwen3-coder-plus", env="MODEL")
-
-    api_key: str = Field(
-        default="sk-BK8CPpt4jIbO3naJ76GUhoaxJhu88Y43n08PnI7wCI8019SG", env="API_KEY"
-    )
+    api_key: str = Field(default="sk-67f25953525e848c7da998a9a7d57b4c", env="API_KEY")
     base_url: str = Field(
-        default="https://api.holdai.top/v1",
+        default="https://apis.iflow.cn/v1",
         env="BASE_URL",
     )
-    model: str = Field(default="claude-sonnet-4-5-20250929", env="MODEL")
+    model: str = Field(default="qwen3-coder-plus", env="MODEL")
+
+    # api_key: str = Field(
+    #     default="sk-BK8CPpt4jIbO3naJ76GUhoaxJhu88Y43n08PnI7wCI8019SG", env="API_KEY"
+    # )
+    # base_url: str = Field(
+    #     default="https://api.holdai.top/v1",
+    #     env="BASE_URL",
+    # )
+    # model: str = Field(default="claude-sonnet-4-5-20250929", env="MODEL")
 
     # TEST_BED: str = Field(default="/Users/hanyu/projects", env="TEST_BED")
     # PROJECT_NAME: str = Field(default="astropy", env="PROJECT_NAME")

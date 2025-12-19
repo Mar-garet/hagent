@@ -38,7 +38,7 @@ def get_retriever() -> CKGRetriever:
     return _retriever
 
 
-def truncate_output(text: str, max_chars: int = 5000) -> str:
+def truncate_output(text: str, max_chars: int = 8888) -> str:
     """
     Truncate text output if it exceeds max_chars limit
     """
@@ -61,6 +61,11 @@ def extract_complete_method(file, full_qualified_name):
     if not path_obj.is_absolute():
         absolute_file = Path(settings.TEST_BED) / settings.PROJECT_NAME / file
     else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
         absolute_file = path_obj
 
     graph_retriever = get_retriever()
@@ -218,6 +223,11 @@ def get_code_relationships(file, full_qualified_name):
     if not path_obj.is_absolute():
         absolute_file = Path(settings.TEST_BED) / settings.PROJECT_NAME / file
     else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
         absolute_file = path_obj
 
     graph_retriever = get_retriever()
@@ -270,6 +280,11 @@ def analyze_file_structure(file):
     if not path_obj.is_absolute():
         absolute_file = Path(settings.TEST_BED) / settings.PROJECT_NAME / file
     else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
         absolute_file = path_obj
     graph_retriever = get_retriever()
     classes, methods = graph_retriever.read_all_classes_and_methods(str(absolute_file))
@@ -326,6 +341,11 @@ def find_variable_usage(
     if not path_obj.is_absolute():
         absolute_file = Path(settings.TEST_BED) / settings.PROJECT_NAME / file
     else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
         absolute_file = path_obj
 
     graph_retriever = get_retriever()
@@ -384,6 +404,11 @@ def show_file_imports(python_file_path):
     if not path_obj.is_absolute():
         full_path = Path(settings.TEST_BED) / settings.PROJECT_NAME / python_file_path
     else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
         full_path = path_obj
 
     try:
@@ -537,26 +562,38 @@ def explore_directory(dir_path: str, prefix: str = "") -> str:
     :param prefix: Internal use for line prefixing (not used in single-level mode)
     :return: A string representing the directory contents
     """
-    if not os.path.exists(dir_path):
-        return f'Directory "{dir_path}" does not exist.'
+    # Check if the path is relative and needs to be converted to absolute
+    path_obj = Path(dir_path)
+    if not path_obj.is_absolute():
+        final_path = Path(settings.TEST_BED) / settings.PROJECT_NAME / dir_path
+    else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
+        final_path = path_obj
+
+    if not os.path.exists(final_path):
+        return f'Directory "{final_path}" does not exist.'
 
     try:
-        entries = sorted(e for e in os.listdir(dir_path) if e != ".git")
+        entries = sorted(e for e in os.listdir(final_path) if e != ".git")
         if not entries:
-            return f'Directory "{dir_path}" is empty.'
+            return f'Directory "{final_path}" is empty.'
 
-        result = f"Contents of {dir_path}:\n"
+        result = f"Contents of {final_path}:\n"
         for entry in entries:
-            path = os.path.join(dir_path, entry)
+            path = os.path.join(final_path, entry)
             if os.path.isdir(path):
                 result += f"{entry}/\n"
             else:
                 result += f"{entry}\n"
         return result
     except PermissionError:
-        return f'Permission denied accessing directory "{dir_path}".'
+        return f'Permission denied accessing directory "{final_path}".'
     except Exception as e:
-        return f'Error reading directory "{dir_path}": {str(e)}'
+        return f'Error reading directory "{final_path}": {str(e)}'
 
 
 @tool_registry.register(agents=[AgentType.FIXER])
@@ -576,6 +613,11 @@ def read_file_lines(file_path: str, start_line: int, end_line: int) -> str:
     if not path_obj.is_absolute():
         full_path = Path(settings.TEST_BED) / settings.PROJECT_NAME / file_path
     else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
         full_path = path_obj
 
     # Adjust start line (ensure it's at least 1)
@@ -632,6 +674,18 @@ def search_code_with_context(keyword: str, search_path: str) -> str:
     :param search_path: The directory or file path to search in.
     :return: A formatted string of search results.
     """
+    # Check if the path is relative and needs to be converted to absolute
+    path_obj = Path(search_path)
+    if not path_obj.is_absolute():
+        final_search_path = Path(settings.TEST_BED) / settings.PROJECT_NAME / search_path
+    else:
+        base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+        try:
+            path_obj.relative_to(base_path)
+        except ValueError:
+            return f"Error: Absolute path does not start with {base_path}"
+        final_search_path = path_obj
+    final_search_path = str(final_search_path)
     results = []
 
     def search_in_file(file_path: str):
@@ -669,12 +723,12 @@ def search_code_with_context(keyword: str, search_path: str) -> str:
         return False
 
     # Check if search_path is a file or directory
-    if os.path.isfile(search_path):
+    if os.path.isfile(final_search_path):
         # Single file search
-        search_in_file(search_path)
-    elif os.path.isdir(search_path):
+        search_in_file(final_search_path)
+    elif os.path.isdir(final_search_path):
         # Directory search - walk through all files
-        for dirpath, _, filenames in os.walk(search_path):
+        for dirpath, _, filenames in os.walk(final_search_path):
             for fname in filenames:
                 if not fname.endswith(".py"):
                     continue
@@ -686,14 +740,14 @@ def search_code_with_context(keyword: str, search_path: str) -> str:
             if len(results) >= 15:
                 break
     else:
-        return f"Path '{search_path}' does not exist or is not accessible."
+        return f"Path '{final_search_path}' does not exist or is not accessible."
 
     # Format results as string
     if not results:
-        path_type = "file" if os.path.isfile(search_path) else "directory"
-        return f"No matches found for '{keyword}' in {path_type} '{search_path}'"
+        path_type = "file" if os.path.isfile(final_search_path) else "directory"
+        return f"No matches found for '{keyword}' in {path_type} '{final_search_path}'"
 
-    path_type = "file" if os.path.isfile(search_path) else "directory"
+    path_type = "file" if os.path.isfile(final_search_path) else "directory"
     result_str = f"Search results for '{keyword}' in {path_type} (showing first {len(results)} matches):\n\n"
     for result_dict in results:
         for file_path, content_info in result_dict.items():

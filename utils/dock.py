@@ -3,7 +3,6 @@ import subprocess
 from pathlib import Path
 import sys
 import shlex
-import re
 
 def run(cmd):
     """Run a command and return output (stdout + stderr)."""
@@ -17,23 +16,17 @@ def run(cmd):
 
 
 def find_image(instance_id):
-    match = re.search(r"(\d+)$", instance_id)
-    if not match:
-        sys.exit(1)
-
-    id_digits = match.group(1) 
-
-    print(f"Searching for images containing digits: {id_digits}")
+    print(f"Searching for images containing: {instance_id}")
 
     images = run("docker images --format '{{.Repository}}:{{.Tag}}'").splitlines()
 
     candidates = []
     for img in images:
-        if id_digits in img:
+        if instance_id in img:
             candidates.append(img)
 
     if not candidates:
-        print("No image found containing digits:", id_digits)
+        print("No image found containing:", instance_id)
         sys.exit(1)
 
     found = candidates[0]

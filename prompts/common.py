@@ -145,6 +145,27 @@ common = """
 </parameters>
 </tool>
 
+<tool name="create_file">
+<description>
+Create a new file with the given code at the specified path.  
+The file_path must be a relative path. An absolute path is not allowed.  
+After creation, the file will be executed inside the SWE-bench Docker container  
+(using the same interactive bash environment as normal evaluation).
+</description>
+<parameters>
+<param name="file_path" type="str">
+Relative path where the file should be created.  
+This path will be appended to TEST_BED/PROJECT_NAME automatically.
+</param>
+<param name="code" type="str">
+The content to write into the new file.
+</param>
+<param name="timeout" type="int">
+Timeout (in seconds) for executing the file inside the container. Default is 60.
+</param>
+</parameters>
+</tool>
+
 <!-- Creating Custom Tools -->
 <tool name="create_tool">
 <description>

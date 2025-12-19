@@ -6,14 +6,16 @@ import re
 from utils.apply_check import ruff_check_file
 from settings import settings
 
-# @tool_registry.register(agents=[AgentType.FIXER])
+@tool_registry.register(agents=[AgentType.FIXER])
 def create_file(file_path: str, code: str, timeout: int = 60) -> str:
     """
-    Create a file with the provided code and execute it in the SWE-bench Docker container.
+    Create a new file with the given code at the specified path.  
+    The file_path must be a relative path. An absolute path is not allowed.  
+    After creation, the file will be executed inside the SWE-bench Docker container  
+    (using the same interactive bash environment as normal evaluation).
 
     Args:
-        file_path: The path where the file should be created. If relative,
-                   TEST_BED/PROJECT_NAME will be prepended.
+        file_path: The path where the file should be created. 
         code: The Python code to write to the file and execute.
         timeout: Timeout for the execution in seconds (default 60).
 
@@ -31,7 +33,8 @@ def create_file(file_path: str, code: str, timeout: int = 60) -> str:
         with open(full_path, "w", encoding="utf-8") as f:
             f.write(code)
 
-        # TODO @hanyu 先写死
+        script_rel_path = f"./{full_path.relative_to(Path(settings.TEST_BED) / settings.PROJECT_NAME)}"
+
         docker_cmd = [
             "docker",
             "run",
@@ -41,8 +44,11 @@ def create_file(file_path: str, code: str, timeout: int = 60) -> str:
             "-w",
             "/testbed",
             settings.DOCKER_IMAGE,
-            "python",
-            f"./{full_path.relative_to(Path(settings.TEST_BED) / settings.PROJECT_NAME)}",
+            "bash",
+            "--login",
+            "-i",
+            "-c",
+            f"python {script_rel_path}",
         ]
 
         result = subprocess.run(
@@ -82,6 +88,11 @@ def edit_file_by_lineno(
         if not path_obj.is_absolute():
             full_path = Path(settings.TEST_BED) / settings.PROJECT_NAME / file_path
         else:
+            base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+            try:
+                path_obj.relative_to(base_path)
+            except ValueError:
+                return f"Error: Absolute path does not start with {base_path}"
             full_path = path_obj
 
         if not full_path.exists():
@@ -151,6 +162,11 @@ def insert(file_path: str, content: str, insert_line: int) -> str:
         if not path_obj.is_absolute():
             full_path = Path(settings.TEST_BED) / settings.PROJECT_NAME / file_path
         else:
+            base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+            try:
+                path_obj.relative_to(base_path)
+            except ValueError:
+                return f"Error: Absolute path does not start with {base_path}"
             full_path = path_obj
 
         if not full_path.exists():
@@ -210,6 +226,11 @@ def edit_file_by_content(file_path: str, old_content: str, new_content: str) -> 
         if not path_obj.is_absolute():
             full_path = Path(settings.TEST_BED) / settings.PROJECT_NAME / file_path
         else:
+            base_path = Path(settings.TEST_BED) / settings.PROJECT_NAME
+            try:
+                path_obj.relative_to(base_path)
+            except ValueError:
+                return f"Error: Absolute path does not start with {base_path}"
             full_path = path_obj
 
         if not full_path.exists():

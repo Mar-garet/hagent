@@ -8,7 +8,7 @@ from pathlib import Path
 
 def find_missing_ids():
     # Get all log files from logs_qwen3-coder-plus directory
-    log_dir = Path("logs_test")
+    log_dir = Path("results/logs")
     if not log_dir.exists():
         print(f"Directory {log_dir} does not exist")
         return
@@ -25,7 +25,7 @@ def find_missing_ids():
     print(f"Extracted {len(log_instance_ids)} unique instance IDs from logs")
 
     # Get all patch files from patch_diff directory
-    patch_dir = Path("patch_diff")
+    patch_dir = Path("results/patch_diff")
     if not patch_dir.exists():
         print(f"Directory {patch_dir} does not exist")
         return
